@@ -17,21 +17,19 @@ export class HomeComponent implements OnInit, OnDestroy{
   logoUrl = 'assets/img/Logo.png';
   @ViewChild('volume') volume: ElementRef | undefined;
 
-  progress=0;
-  currentVolume = 1;
   isPlaying: boolean = false;
   isMuted: boolean = false;
   audioList: Music[]=[];
 
   audioControllersService = inject(AudioControllersService);
-  audioDataService$ = inject(AudioDataService);
+  audioDataService = inject(AudioDataService);
   private destroy$ = new Subject<void>();
   
   constructor() {}
 
   ngOnInit(): void {
     // Load the audio list
-    this.audioDataService$.getAudioList()
+    this.audioDataService.getAudioList()
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (audioList) =>{

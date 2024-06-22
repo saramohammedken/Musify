@@ -8,7 +8,7 @@ import { BehaviorSubject, Observable} from 'rxjs';
 export class AudioControllersService {
   private audio = new Audio();
   private musicList: any[] = [];
-  public trackingPointer = 0;
+  public trackingPointer: number = 0;
   public musicLength: string ='00:00';
   
   // BehaviorSubjects to keep track of the audio state
@@ -81,28 +81,26 @@ export class AudioControllersService {
     this.audio.currentTime = 0;
   }
 
-  // // Adjust the track position based on user input
+  // Adjust the track position based on user input
   adjustTrack(droppedPoint: number): void {
-    const newValue = droppedPoint / 100;
-    this.audio.currentTime = this.audio.duration * newValue;
+    const newTime = (droppedPoint / 100) * this.audio.duration;
+    this.audio.currentTime = newTime;
   }
-  
+
   // Play the previous track in the list
-  previous():void {
+  previous(): void {
     if (this.trackingPointer > 0) {
-      this.trackingPointer = Math.max(0, this.trackingPointer - 1);
-      this.audio.currentTime = 0;
-      this.loadMusic(this.currentMusic);
+      this.trackingPointer--;
+      this.loadMusic(this.currentMusic!);
       this.play();
     }
   }
 
   // Play the next track in the list
-  next():void {
+  next(): void {
     if (this.trackingPointer < this.musicList.length - 1) {
-      this.trackingPointer = Math.min(this.musicList.length - 1, this.trackingPointer + 1);
-      this.audio.currentTime = 0;
-      this.loadMusic(this.currentMusic);
+      this.trackingPointer++;
+      this.loadMusic(this.currentMusic!);
       this.play();
     }
   }
@@ -113,20 +111,23 @@ export class AudioControllersService {
   }
 
   // Adjust the volume using keyboard events
-  adjustVolumeKeyboardEvent(op: string):void {
-    if(op === 'up')
-    this.audio.volume = Math.min(this.audio.volume + 0.1, 1);
-    if(op === 'down')
-    this.audio.volume = Math.max(this.audio.volume - 0.1, 0);
-     
-    if(this.audio.muted){
-      this.audio.muted = false;
-      this.isMuted.next(this.audio.muted);
+  adjustVolumeKeyboardEvent(operation: 'up' | 'down'): void {
+    if (operation === 'up') {
+      this.audio.volume = Math.min(this.audio.volume + 0.1, 1);
+    } else if (operation === 'down') {
+      this.audio.volume = Math.max(this.audio.volume - 0.1, 0);
     }
-    if(this.audio.volume == 0){
+    this.updateMuteStatus();
+  }
+
+  // Update the mute status based on volume
+  private updateMuteStatus(): void {
+    if (this.audio.volume === 0) {
       this.audio.muted = true;
-      this.isMuted.next(this.audio.muted);
+    } else {
+      this.audio.muted = false;
     }
+    this.isMuted.next(this.audio.muted);
   }
   
   // Mute or unmute the current audio
