@@ -4,6 +4,7 @@ import { AsyncPipe, NgClass } from '@angular/common';
 import { AudioDataService } from '../services/audio-data.service';
 import { AudioControllersService } from '../services/audio-controllers.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ErrorLoggingService } from '../services/error-logging.service';
 
 @Component({
   selector: 'app-home',
@@ -19,10 +20,12 @@ export class HomeComponent implements OnInit, OnDestroy{
 
   isPlaying: boolean = false;
   isMuted: boolean = false;
+  openMenu: boolean = false;
   audioList: Music[]=[];
 
   audioControllersService = inject(AudioControllersService);
   audioDataService = inject(AudioDataService);
+  errorLogginService = inject(ErrorLoggingService)
   private destroy$ = new Subject<void>();
   
   constructor() {}
@@ -36,7 +39,7 @@ export class HomeComponent implements OnInit, OnDestroy{
         this.audioControllersService.loadMusicList(audioList);
         this.audioList = audioList;
       },
-      error: (err) => {console.error(err)}
+      error: (err) => {this.errorLogginService.logError(err);}
     });
     
     // Check the playback status
@@ -46,7 +49,7 @@ export class HomeComponent implements OnInit, OnDestroy{
       next: (isPlaying) => {
         this.isPlaying = isPlaying;
       },
-      error: (err) => {console.error(err)}
+      error: (err) => {this.errorLogginService.logError(err);}
     });
 
     // Check the mute status
@@ -56,7 +59,7 @@ export class HomeComponent implements OnInit, OnDestroy{
       next: (isMuted) => {
         this.isMuted = isMuted;
       },
-      error: (err) => {console.error(err)}
+      error: (err) => {this.errorLogginService.logError(err);}
     });
   }
 
@@ -119,7 +122,14 @@ export class HomeComponent implements OnInit, OnDestroy{
         break;
     }
   }
-  
+
+  // Change the current track based on user input
+  changePlayList(targetId: number): void{
+    const targetMusic = this.audioList.find(item => item.id === targetId);
+    this.audioControllersService.loadMusic(targetMusic);
+    this.audioControllersService.play();
+  }
+
   // Clean up subscriptions when the component is destroyed
   ngOnDestroy(): void {
     this.destroy$.next();

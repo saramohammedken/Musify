@@ -24,10 +24,12 @@ export class AudioControllersService {
   public isMuted$: Observable<boolean> = this.isMuted.asObservable();
 
   constructor() {
+    // Update music length when the audio's duration changes
     this.audio.ondurationchange = () => {
       this.musicLength = this.formatTime(this.audio.duration);
     }
-
+    
+    // Update progress and current time when the audio's time updates
     this.audio.ontimeupdate = () => {
       let progress = (this.audio.currentTime / this.audio.duration) * 100;
       this.progress.next(progress);
@@ -56,6 +58,8 @@ export class AudioControllersService {
   // Load a specific music track
   loadMusic(music: any): void {
     this.audio.src = music.url;
+    const index = this.musicList.findIndex(item => item.id === music.id);
+    this.trackingPointer = index;
   }
   
   // Play the audio and handle potential errors
